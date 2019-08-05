@@ -64,7 +64,11 @@ class NestedViewSetMixin(object):
         parents_query_dict = self.get_parents_query_dict()
         if parents_query_dict:
             try:
-                return queryset.filter(**parents_query_dict)
+                queryset = queryset.filter(**parents_query_dict)
+                # http 404 if queryset is empty
+                if not len(queryset):
+                    raise ValueError
+                return queryset
             except ValueError:
                 raise Http404
         else:
@@ -82,3 +86,14 @@ class NestedViewSetMixin(object):
                 query_value = kwarg_value
                 result[query_lookup] = query_value
         return result
+
+    """def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)"""
